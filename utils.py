@@ -22,7 +22,14 @@ class APP(ctk.CTk):
         self.frame_button_tablet=Frame_Button_Tablet(self,width=1100, height=800)
         self.frame_button_tablet.grid(row=1,column=0)
 
+
         #frame resposta - inferior
+
+        
+
+
+
+        
 
   
 #criando uma classe com frame superio
@@ -33,6 +40,8 @@ class Frame_Superior(ctk.CTkFrame):
         self.label_nome=ctk.CTkLabel(master,text="Aplicativo Desenvolvido para Auxiliar no Monitoramento da Qualidade do Ar na cidade de João Pessoa",font=("Arial bold",20),width=1100,height=65)
         self.label_nome.grid(row=0,column=0)
         self.label_nome.grid_columnconfigure(0,weight=1)
+
+        
 
 
 #criando classe com frame para receber a tabview - meio
