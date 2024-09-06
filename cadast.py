@@ -1,6 +1,7 @@
 import customtkinter as ctk
 import tkinter.messagebox as mensagem
 import bancoD as bd
+import os
 
 #criando uma classe tableView 
 class Table_View(ctk.CTkTabview):
@@ -110,13 +111,22 @@ class Table_View(ctk.CTkTabview):
 
     #########
         ##criação e atualização do combobox, usando os pontos cadastrados no banco de dados
-        lista_combo=bd.Banco_Dados_Ponto()
-        self.dados=lista_combo.list_pontos()
+        #verificar ao iniciar se o banco de dados ja foi criado e se possui dados para o combobox
+        if os.path.exists("Banco_Dados.db"):
+            try:
+                lista_combo=bd.Banco_Dados_Ponto()
+                self.dados=lista_combo.list_pontos()
+                if not self.dados:
+                    self.dado=[]
+            except Exception as e:
+                self.dados=[]
+        else:
+            self.dados=[]
+
 
         self.combo_box=ctk.CTkComboBox(self.tab("Registrar e Calcular IQar"),width=100,height=40,values=self.dados)
         self.combo_box.grid(row=0,column=0)
-
-
+        
     ###########criando dicionario com as labels que mudam a cor com valores dos iqar calculado
         self.dic_label_iqar_result={"mp_10":self.iqar_mp10,"mp_25":self.iqar_mp25,"o3":self.iqar_o3,"co":self.iqar_co,"no2":self.iqar_no2,"so2":self.iqar_so2}
         
@@ -139,6 +149,9 @@ class Table_View(ctk.CTkTabview):
             #atualizar o combobox quando adicionado itens - lembrar que para modoficar um widt apos iniciado tem que usar o configure
             self.dados_up=cadastro_banco_dados.list_pontos()
             self.combo_box.configure(values=self.dados_up)
+
+            #atualizar o treeview - my_tree em utils
+            bd.Retorno_bd.retorno_pontos_coleta()
                      
             
             
@@ -272,11 +285,8 @@ class Table_View(ctk.CTkTabview):
         cadastro_banco_dados_iqar.cadastrar(self.consolidado)
     
 
+ 
 
-
-    
-    #####acessando o banco de dados e criando a tabela de Ponto_coleta
-    
 
 
 

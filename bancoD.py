@@ -1,34 +1,37 @@
 # classe com os dados do banco de dados
 
-
 import sqlite3 as conector
 import tkinter.messagebox as mensagem
+
 
 comando_criar_tabela_ponto= '''CREATE TABLE IF NOT EXISTS ponto (cod INTEGER NOT NULL,
                                  estado TEXT NOT NULL,
                                      municipio TEXT NOT NULL,
-                                       bairro TEXT NOT NULL, 
-                                       ref TEXT,
-                                         PRIMARY KEY(cod));'''
+                                        bairro TEXT NOT NULL, 
+                                            ref TEXT,
+                                                PRIMARY KEY(cod));'''
 comando_cadastrar_ponto= '''INSERT INTO ponto(cod, estado, municipio, bairro, ref) VALUES(:cod, :estado, :municipio, :bairro, :ref);'''
 
-comando_criar_tabela_iqar= '''CREATE TABLE IF NOT EXISTS iqar(cod INTEGER NOT NULL,
-                                 mp10 INTEGER ,mp25 INTEGER, o3 INTEGER, 
-                                    co INTEGER, no2 INTEGER, so2 INTEGER, 
-                                        iqar_dia INTEGER,
-                                            PRIMARY KEY(cod), 
-                                                FOREIGN KEY(cod) REFERENCES ponto(cod));'''
-# comando_cadastrar_iqar=
+comando_criar_tabela_iqar= '''CREATE TABLE IF NOT EXISTS iqar( id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            mp_10 INTEGER ,
+                                mp_25 INTEGER, 
+                                    o3 INTEGER, 
+                                        co INTEGER, 
+                                            no2 INTEGER,
+                                                so2 INTEGER, 
+                                                    iqar_dia INTEGER,
+                                                        data TEXT,
+                                                            cod INTEGER NOT NULL);'''
+
+comando_cadastrar_iqar= '''INSERT INTO iqar(mp_10,mp_25, o3, co, no2, so2, iqar_dia, data, cod) VALUES(:mp_10, :mp_25, :o3, :co, :no2, :so2, :iqar_dia, :data, :cod)'''
 
 #forçar o banco de dados a verificar integridade de chave estrangeira
 #comando_considerar_foreign='''PRAGMA foreign_keys = on'''
 
 
 
-
+#lista dos cod da tabela point
 list_combo=[]
-
-
 class Banco_Dados_Ponto():
     def __init__(self) :
         super().__init__()
@@ -40,6 +43,7 @@ class Banco_Dados_Ponto():
 
             conexao=conector.connect("Banco_Dados.db")
             cursor=conexao.cursor()
+            #cursor.execute(comando_considerar_foreign)
             cursor.execute(comando_criar_tabela_ponto)
 
             cursor.execute(comando_cadastrar_ponto,{"cod":ponto_coleta["cod"],
@@ -63,7 +67,6 @@ class Banco_Dados_Ponto():
             conexao.close()
        
 
-
     ######## função para cadastrar e criar tabela iqar  
     def cadastrar(self,consolidado):
 
@@ -72,6 +75,18 @@ class Banco_Dados_Ponto():
             conexao=conector.connect("Banco_Dados.db")
             cursor=conexao.cursor()
             cursor.execute(comando_criar_tabela_iqar)
+            #cursor.execute(comando_considerar_foreign)
+
+            cursor.execute(comando_cadastrar_iqar,{"mp_10":consolidado["mp_10"],
+                                                    "mp_25":consolidado["mp_25"],
+                                                    "o3":consolidado["o3"],
+                                                    "co":consolidado["co"],
+                                                    "no2":consolidado["no2"],
+                                                    "so2":consolidado["so2"],
+                                                    "iqar_dia":consolidado["iqar_dia"],
+                                                    "data":consolidado["data"],
+                                                    "cod":consolidado["cod"]
+                                                    })
 
 
             conexao.commit()
@@ -112,6 +127,51 @@ class Banco_Dados_Ponto():
             conexao.close()
 
 
+
+######### função para obter os dados do banco de dados ponto   
+class Retorno_bd():
+    def __init__():
+        super().__init__
+        
+    def retorno_pontos_coleta():
+        
+        try:
+            conexao=conector.connect("Banco_Dados.db")
+            cursor=conexao.cursor()
+
+            cursor.execute("SELECT * FROM ponto")
+            dados=cursor.fetchall()
+
+        except conector.Error as e:
+            mensagem.showinfo("Erro",f"Erro inesperado {e}")   
+        finally:
+                       
+            cursor.close()
+            conexao.close()      
+    
+        return dados
+    
+    
+
+######### função para obter os dados do banco de dados iqar
+    def retorno_iqar(cod):
+        
+        try:
+            conexao=conector.connect("Banco_Dados.db")
+            cursor=conexao.cursor()
+
+            #nesse comando sera selecionado apenas os dados com o id selecionado
+            cursor.execute("SELECT * FROM iqar WHERE cod=?",(cod,))
+            dados=cursor.fetchall()
+
+        except conector.Error as e:
+            mensagem.showinfo("Erro",f"Erro inesperado {e}")   
+        finally:
+                       
+            cursor.close()
+            conexao.close()
+    
+        return dados 
 
 
 
