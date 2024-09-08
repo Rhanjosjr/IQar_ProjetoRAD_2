@@ -3,6 +3,7 @@ import tkinter.messagebox as mensagem
 import bancoD as bd
 import os
 
+
 #criando uma classe tableView 
 class Table_View(ctk.CTkTabview):
     def __init__(self,master,**kwargs):
@@ -10,6 +11,10 @@ class Table_View(ctk.CTkTabview):
 
         ########## resultado consolidado dos iqar---para cadastrar no bd
         self.consolidado={}
+
+        #########instancia de tree para que cadast consiga atualizar treeview
+        self.tree_atualiza=None
+        ##################
 
         #adicionando as abas
         self.add("Cadastrar Ponto de Coleta")       
@@ -98,7 +103,7 @@ class Table_View(ctk.CTkTabview):
         self.iqar_so2=ctk.CTkLabel(self.tab("Registrar e Calcular IQar"),text="",bg_color="blue",width=100,text_color="black")
         self.iqar_so2.grid(row=6,column=4)    
 
-        self.calc_iqar=ctk.CTkButton(self.tab("Registrar e Calcular IQar"),text="CALCULAR O VALOR DE IAar",command=self.calcular_iqar)
+        self.calc_iqar=ctk.CTkButton(self.tab("Registrar e Calcular IQar"),text="CALCULAR O VALOR DE IQar",command=self.calcular_iqar)
         self.calc_iqar.grid(row=7,column=2)
 
         self.iqar_dia=ctk.CTkLabel(self.tab("Registrar e Calcular IQar"),text="",bg_color="blue",width=200,height=200)
@@ -107,12 +112,21 @@ class Table_View(ctk.CTkTabview):
         self.cadatrar_db_result=ctk.CTkButton(self.tab("Registrar e Calcular IQar"),text="Cadastrar o resultado no BD",command=self.cadastrar_result)
         self.cadatrar_db_result.grid(row=6,column=6,sticky="e",padx=50)
 
+        #criar um combo vazio
+        self.combo_box=ctk.CTkComboBox(self.tab("Registrar e Calcular IQar"),width=100,height=40,values=[])
+        self.combo_box.grid(row=0,column=0)        
+
 
 
     #########
         ##criação e atualização do combobox, usando os pontos cadastrados no banco de dados
         #verificar ao iniciar se o banco de dados ja foi criado e se possui dados para o combobox
+    def atualiza_combo_box(self):
+        #self.combo_box.configure(values=[])
+
+        #verifica se existe banco de dados criado
         if os.path.exists("Banco_Dados.db"):
+      
             try:
                 lista_combo=bd.Banco_Dados_Ponto()
                 self.dados=lista_combo.list_pontos()
@@ -124,8 +138,10 @@ class Table_View(ctk.CTkTabview):
             self.dados=[]
 
 
-        self.combo_box=ctk.CTkComboBox(self.tab("Registrar e Calcular IQar"),width=100,height=40,values=self.dados)
-        self.combo_box.grid(row=0,column=0)
+
+        #atera o combobox criado para os valores filtrados
+        self.combo_box.configure(values=self.dados)
+
         
     ###########criando dicionario com as labels que mudam a cor com valores dos iqar calculado
         self.dic_label_iqar_result={"mp_10":self.iqar_mp10,"mp_25":self.iqar_mp25,"o3":self.iqar_o3,"co":self.iqar_co,"no2":self.iqar_no2,"so2":self.iqar_so2}
@@ -147,14 +163,24 @@ class Table_View(ctk.CTkTabview):
             cadastro_banco_dados.validar(ponto_coleta)
 
             #atualizar o combobox quando adicionado itens - lembrar que para modoficar um widt apos iniciado tem que usar o configure
-            self.dados_up=cadastro_banco_dados.list_pontos()
-            self.combo_box.configure(values=self.dados_up)
+            # self.dados_up=cadastro_banco_dados.list_pontos()
+            # self.combo_box.configure(values=self.dados_up)
+
 
             #atualizar o treeview - my_tree em utils
-            bd.Retorno_bd.retorno_pontos_coleta()
-                     
-            
-            
+            self.tree_atualiza()
+            #atualiza o combobox
+            self.atualiza_combo_box()
+
+
+            #apagar os dados na tela
+            #usa o metodo .delete(0,tk.END) - 0 inicio do texto até o final tk.END ------no caso fica ctk.END
+            self.entry_cod_point.delete(0,ctk.END)
+            self.entry_estado.delete(0,ctk.END)
+            self.entry_municipio.delete(0,ctk.END)
+            self.entry_bairro.delete(0,ctk.END)
+            self.entry_ref.delete(0,ctk.END)                            
+                   
         except ValueError:
             #uma mensagem box - para usar tem que importar tkinter.menssagebox
             mensagem.showinfo("ATENÇÃO!!","O campo Ponto de Coleta deve ser um número inteiro.")
@@ -166,7 +192,7 @@ class Table_View(ctk.CTkTabview):
     def calcular_iqar(self):
        
         #####lista com valores de entrada -- colocando uma condição na entrada de dados, para garantir que seja um numero int, devido aos calculos
-
+        ### tem outras formas, dessa ficou uma repetiçao para cada item ... depois refatoro
         def validar_entrada(entrada):
             try:
                 return int(entrada.get())
@@ -249,9 +275,10 @@ class Table_View(ctk.CTkTabview):
                 if dict_iqar_result[chave] in range(201,5000):
                     value.configure(bg_color="purple")
                     cont["Pessimo"]=5
-        #encontra a chave que tenha o menor valor em um dicionario e ajusta a cor e valor do iqar do dia, para o menor do dia monitorado
-            print(cont)
-      
+       
+       
+        #encontra a chave que tenha o menor valor em um dicionario e ajusta a cor e valor do iqar do dia, para o menor do dia monitorado   
+        #cont_max pega o maior valor em um dicionario e retorna em cont_max
         cont_max = max(cont, key=cont.get)
         if cont_max == "Boa":
             self.iqar_dia.configure(bg_color="green", text=cont_max, font=("Arial", 50), text_color="black")
@@ -283,6 +310,24 @@ class Table_View(ctk.CTkTabview):
         cadastro_banco_dados_iqar=bd.Banco_Dados_Ponto()
         #criar tabela e cadastrar
         cadastro_banco_dados_iqar.cadastrar(self.consolidado)
+
+        #apagando os dados na tela pra próximo registro
+        self.entry_mp10.delete(0,ctk.END)
+        self.entry_mp25.delete(0,ctk.END)
+        self.entry_o3.delete(0,ctk.END)
+        self.entry_co.delete(0,ctk.END)
+        self.entry_no2.delete(0,ctk.END)
+        self.entry_so2.delete(0,ctk.END)
+        self.entry_date.delete(0,ctk.END)
+        self.iqar_dia.configure(text="",bg_color="blue")
+
+        #labels coloridas
+        self.iqar_mp10.configure(text="",bg_color="blue")
+        self.iqar_mp25.configure(text="",bg_color="blue")
+        self.iqar_o3.configure(text="",bg_color="blue")
+        self.iqar_co.configure(text="",bg_color="blue")
+        self.iqar_no2.configure(text="",bg_color="blue")
+        self.iqar_so2.configure(text="",bg_color="blue")
     
 
  

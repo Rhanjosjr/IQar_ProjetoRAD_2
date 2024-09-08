@@ -25,6 +25,7 @@ comando_criar_tabela_iqar= '''CREATE TABLE IF NOT EXISTS iqar( id INTEGER PRIMAR
 
 comando_cadastrar_iqar= '''INSERT INTO iqar(mp_10,mp_25, o3, co, no2, so2, iqar_dia, data, cod) VALUES(:mp_10, :mp_25, :o3, :co, :no2, :so2, :iqar_dia, :data, :cod)'''
 
+
 #forçar o banco de dados a verificar integridade de chave estrangeira
 #comando_considerar_foreign='''PRAGMA foreign_keys = on'''
 
@@ -115,6 +116,8 @@ class Banco_Dados_Ponto():
             rows = cursor.fetchall()
             #criar uma lista com os resultados
 
+            list_combo=[]
+
             for row in rows:
                 list_combo.append(str(row[0]))
             return list_combo
@@ -161,7 +164,7 @@ class Retorno_bd():
             cursor=conexao.cursor()
 
             #nesse comando sera selecionado apenas os dados com o id selecionado
-            cursor.execute("SELECT * FROM iqar WHERE cod=?",(cod,))
+            cursor.execute("SELECT  mp_10 , mp_25 , o3, co, no2,so2, iqar_dia,data,cod FROM iqar WHERE cod=?",(cod,))
             dados=cursor.fetchall()
 
         except conector.Error as e:
