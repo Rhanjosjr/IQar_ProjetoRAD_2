@@ -2,6 +2,7 @@ import customtkinter as ctk
 import tkinter.messagebox as mensagem
 import bancoD as bd
 import os
+import tree
 
 
 #criando uma classe tableView 
@@ -52,6 +53,16 @@ class Table_View(ctk.CTkTabview):
         self.button_cadast_point=ctk.CTkButton(self.tab("Cadastrar Ponto de Coleta"),text="Cadastrar Local no BD",width=200,height=30,command=self.cadastrar)
         self.button_cadast_point.grid(row=5,column=0,columnspan=2,padx=20,pady=20)
 
+
+        ###### temporario so pra descrever o programa em teste e o responsável, depois substituir pelo logo
+        self.frame_description= ctk.CTkFrame(self.tab("Cadastrar Ponto de Coleta"),width=200, height=200)
+        self.frame_description.grid(row=0,column=2,rowspan=5,padx=50,sticky="n")
+
+        self.label_description=ctk.CTkLabel(self.frame_description,text="Sistema desenvolvido para auxiliar no cálculo e armazenamento do IQar na cidade de João Pessoa.\n\n\nEsse sistema e um protótipo entregue ao grupo de Pesquisa da Qualidade do Ar na UFPB.\n\nEncontrasse em fase de teste e avaliação",font=("arial",18),anchor="w",justify="left")
+        self.label_description.grid(row=0, column=0,pady=50,sticky="w",rowspan=4)
+
+        self.label_procuctor=ctk.CTkLabel(self.frame_description,text="Dev -- Romildo H\nRequisito a Disciplina RAD do curso de ADS - Estácio",font=("arial",10),anchor="e",justify="right")
+        self.label_procuctor.grid(row=5, column=0,pady=50,sticky="e")
 
 
 
@@ -113,16 +124,15 @@ class Table_View(ctk.CTkTabview):
         self.cadatrar_db_result.grid(row=6,column=6,sticky="e",padx=50)
 
         #criar um combo vazio
+        self.label_combo_box=ctk.CTkLabel(self.tab("Registrar e Calcular IQar"),text="Selec. Ponto de coleta",font=("Arial",10))
+        self.label_combo_box.grid(row=0,column=0)
         self.combo_box=ctk.CTkComboBox(self.tab("Registrar e Calcular IQar"),width=100,height=40,values=[])
-        self.combo_box.grid(row=0,column=0)        
-
-
+        self.combo_box.grid(row=1,column=0)        
 
     #########
         ##criação e atualização do combobox, usando os pontos cadastrados no banco de dados
         #verificar ao iniciar se o banco de dados ja foi criado e se possui dados para o combobox
     def atualiza_combo_box(self):
-        #self.combo_box.configure(values=[])
 
         #verifica se existe banco de dados criado
         if os.path.exists("Banco_Dados.db"):
@@ -162,16 +172,12 @@ class Table_View(ctk.CTkTabview):
             #cadastrar os dados no bd
             cadastro_banco_dados.validar(ponto_coleta)
 
-            #atualizar o combobox quando adicionado itens - lembrar que para modoficar um widt apos iniciado tem que usar o configure
-            # self.dados_up=cadastro_banco_dados.list_pontos()
-            # self.combo_box.configure(values=self.dados_up)
 
-
-            #atualizar o treeview - my_tree em utils
+            ###########atualizar o treeview - my_tree em utils-para que fique vazio de novo - vai receber (tree_view.atualiza_treeview_ponto)
             self.tree_atualiza()
             #atualiza o combobox
             self.atualiza_combo_box()
-
+            ############
 
             #apagar os dados na tela
             #usa o metodo .delete(0,tk.END) - 0 inicio do texto até o final tk.END ------no caso fica ctk.END
@@ -184,7 +190,7 @@ class Table_View(ctk.CTkTabview):
         except ValueError:
             #uma mensagem box - para usar tem que importar tkinter.menssagebox
             mensagem.showinfo("ATENÇÃO!!","O campo Ponto de Coleta deve ser um número inteiro.")
-            print("Erro")
+            
 
 
 ######################################################
@@ -192,20 +198,21 @@ class Table_View(ctk.CTkTabview):
     def calcular_iqar(self):
        
         #####lista com valores de entrada -- colocando uma condição na entrada de dados, para garantir que seja um numero int, devido aos calculos
-        ### tem outras formas, dessa ficou uma repetiçao para cada item ... depois refatoro
-        def validar_entrada(entrada):
+        ### tem outras formas, dessa ficou uma repetiçao para cada item e ainda calcula
+        def validar_entrada(name,entrada):
             try:
                 return int(entrada.get())
             except ValueError:
-                mensagem.showinfo("Atenção", "Digite nos campos MP-10, MP-2.5, O3, CO, NO2, SO2 apenas números inteiros")
-
-        lista_entrada=[("mp_10",validar_entrada(self.entry_mp10)),
-                       ("mp_25",validar_entrada(self.entry_mp25)),
-                       ("o3",validar_entrada(self.entry_o3)),
-                       ("co",validar_entrada(self.entry_co)),
-                       ("no2",validar_entrada(self.entry_no2)),
-                       ("so2",validar_entrada(self.entry_so2))]
-
+                mensagem.showinfo("Atenção", f"Digite apenas números inteiros nos campos de resultados! Verifique o campo {name}")
+    #######################################################
+    #diz o nome de cada compo com preenchimento errado, passando pelo metodo acima
+        lista_entrada=[("mp_10",validar_entrada("Mp_10",self.entry_mp10)),
+                       ("mp_25",validar_entrada("Mp_2,5",self.entry_mp25)),
+                       ("o3",validar_entrada("O3",self.entry_o3)),
+                       ("co",validar_entrada("CO",self.entry_co)),
+                       ("no2",validar_entrada("NO2",self.entry_no2)),
+                       ("so2",validar_entrada("SO2",self.entry_so2))]
+    #########################################################
 
         #listas com os limites dos parametros - tem que escolher os certos para o calculo
         list_indice=[("Boa",range(0,41)),("Moderada",range(41,81)),("Ruim",range(81,121)),("Muito Ruim",range(121,201)),("Péssima",range(201,1000))]
@@ -216,38 +223,40 @@ class Table_View(ctk.CTkTabview):
         no2=[("no2 boa",range(0,201)),("no2 mod",range(201,241)),("no2 ruim",range(241,321)),("no2 mruim",range(321,1131)),("no2 pessima",range(1131,5000))]
         so2=[("so2 boa",range(0,21)),("so2 mod",range(21,41)),("so2 ruim",range(41,366)),("so2 mruim",range(366,801)),("so2 pessima",range(801,5000))]
 
-        #lista com os limites - para verificar em loop com todos ao mesmo tempo
+
+        #lista com os limites - para verificar em loop com todos ao mesmo tempo - juntei as listas como um item em outra lista
         lista_limites=[("mp_10",mp_10),("mp_25",mp_25),("o3",o3),("co",co),("no2",no2),("so2",so2)]
         dict_iqar_result={}
                
 
 
-        ########## falta criar em forma de dicionario on fim para facilitar o bd
-        ######dificil mas ta funcionando - falta ajustar o calculo do iqar### 
+        ##########criar em forma de dicionario on fim para facilitar o bd
+        ######dificil mas ta funcionando - iqar### 
         ####pega a lista de entrada, depois a de limites e compara se tem parametros como o mesmo nome nas listas, depois verifica em qual intervalo o valor esta
-        ##tambem compara na que tem o mesmo nome na teabel ado indice e verifica em qual intervalo esta
+        ##tambem compara na que tem o mesmo nome na leabel dado indice e verifica em qual intervalo esta
         ## separa as concentrações inicial, final e o intervalo inicial e final
         for parametro_ent, valor_ent in lista_entrada:
             for parametro_limit, list_valor_limit in lista_limites:
                 if parametro_ent in parametro_limit:
                     for __, intervalo_list_limit in list_valor_limit:
-                        if valor_ent in intervalo_list_limit:
-                            print(f"Para o parametro {parametro_ent} concentração inicial - {intervalo_list_limit.start} e a concentração final - {intervalo_list_limit.stop-1}")
-                    for indice, intervalo_indice in list_indice:
-                        if valor_ent in intervalo_indice:
-                            print(f"Para o parametro {parametro_ent} o indice inicial - {intervalo_indice.start} e o indice final - {intervalo_indice.stop-1}")
-                            a=intervalo_indice.start
-                            b=(((intervalo_indice.stop-1)-intervalo_indice.start)/((intervalo_list_limit.stop-1)-intervalo_list_limit.start))
-                            c=(valor_ent-intervalo_list_limit.start)
-                            iqar=max(0,int((a+b*c)))
-                            print(f"Parametro {parametro_ent}, IQar:{iqar}")
+                        #teste de retorno
+                        #if valor_ent in intervalo_list_limit:
+                            #print(f"Para o parametro {parametro_ent} concentração inicial - {intervalo_list_limit.start} e a concentração final - {intervalo_list_limit.stop-1}")
+                        for indice, intervalo_indice in list_indice:
+                            if valor_ent in intervalo_indice:
+                                #print(f"Para o parametro {parametro_ent} o indice inicial - {intervalo_indice.start} e o indice final - {intervalo_indice.stop-1}")
+                                a=intervalo_indice.start
+                                b=(((intervalo_indice.stop-1)-intervalo_indice.start)/((intervalo_list_limit.stop-1)-intervalo_list_limit.start))
+                                c=(valor_ent-intervalo_list_limit.start)
+                                iqar=max(0,int((a+b*c)))
+                                #print(f"Parametro {parametro_ent}, IQar:{iqar}")
 
-                            #dicionaio consolidado dos resultados
-                            dict_iqar_result[parametro_ent]=iqar
-                            #self.consolidado=dict_iqar_result
+                                #dicionaio consolidado dos resultados
+                                dict_iqar_result[parametro_ent]=iqar
+                                #self.consolidado=dict_iqar_result
 
-
-        print(dict_iqar_result)      
+        # teste de retorno
+        #print(dict_iqar_result)      
 
         #aplicado para classificar os valores individuais dos iqar 
         cont ={}
@@ -297,7 +306,8 @@ class Table_View(ctk.CTkTabview):
         data=self.entry_date.get()
         self.consolidado["data"]=data
         self.consolidado["cod"]=int(self.combo_box.get())
-        print(self.consolidado)
+        # teste de retorno
+        # print(self.consolidado)
 
         
 
@@ -311,6 +321,7 @@ class Table_View(ctk.CTkTabview):
         #criar tabela e cadastrar
         cadastro_banco_dados_iqar.cadastrar(self.consolidado)
 
+        ##
         #apagando os dados na tela pra próximo registro
         self.entry_mp10.delete(0,ctk.END)
         self.entry_mp25.delete(0,ctk.END)

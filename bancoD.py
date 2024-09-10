@@ -12,6 +12,7 @@ comando_criar_tabela_ponto= '''CREATE TABLE IF NOT EXISTS ponto (cod INTEGER NOT
                                                 PRIMARY KEY(cod));'''
 comando_cadastrar_ponto= '''INSERT INTO ponto(cod, estado, municipio, bairro, ref) VALUES(:cod, :estado, :municipio, :bairro, :ref);'''
 
+# algo novo, não conhecia a combinaçao de NOT NULL E CHECK para verificar uma entrada no banco de dados - caso da data
 comando_criar_tabela_iqar= '''CREATE TABLE IF NOT EXISTS iqar( id INTEGER PRIMARY KEY AUTOINCREMENT,
                             mp_10 INTEGER ,
                                 mp_25 INTEGER, 
@@ -20,7 +21,7 @@ comando_criar_tabela_iqar= '''CREATE TABLE IF NOT EXISTS iqar( id INTEGER PRIMAR
                                             no2 INTEGER,
                                                 so2 INTEGER, 
                                                     iqar_dia INTEGER,
-                                                        data TEXT,
+                                                        data TEXT NOT NULL CHECK(data <>""),
                                                             cod INTEGER NOT NULL);'''
 
 comando_cadastrar_iqar= '''INSERT INTO iqar(mp_10,mp_25, o3, co, no2, so2, iqar_dia, data, cod) VALUES(:mp_10, :mp_25, :o3, :co, :no2, :so2, :iqar_dia, :data, :cod)'''
@@ -63,7 +64,7 @@ class Banco_Dados_Ponto():
         except conector.Error as e:
             mensagem.showinfo("Erro",f"Erro inesperado {e}")
         finally:
-            print("tabela ponto criada")
+            #print("tabela ponto criada")
             cursor.close()
             conexao.close()
        
@@ -96,10 +97,16 @@ class Banco_Dados_Ponto():
 
         except conector.DataError as e:
             mensagem.showinfo("Erro",f"Erro ao acessar o banco de dados {e}")
+        except conector.IntegrityError as e:
+            mensagem.showinfo("Atenção",f"Campo não pode ser vazio {e}")
         except conector.Error as e:
             mensagem.showinfo("Erro",f"Erro inesperado {e}")
+        except KeyError as e:
+            mensagem.showinfo("Atenção", f"Verifique se todos os dados foram digitados! {e}")
+        
+        
         finally:
-            print("tabela iqar criada")
+            #print("tabela iqar criada")
             #fecahr conexao com bd
             cursor.close()
             conexao.close()

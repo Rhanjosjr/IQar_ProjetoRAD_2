@@ -20,18 +20,18 @@ class APP(ctk.CTk):
         #janela principal
         self.title("  --  Aplicativo para calcular e armazenar dados de IQar  --  ")
         self.geometry("1200x900")
-        #self.iconbitmap("IQar.ico")
+        self.iconbitmap("IQar.ico")
         self.resizable(False,False)
 
 ######################
-        # #frame inicial - superior
+        # inicial - superior
         self.label_nome=ctk.CTkLabel(self,text="Aplicativo Desenvolvido para Auxiliar no Monitoramento da Qualidade do Ar na cidade de João Pessoa",font=("Arial bold",20),width=1100,height=30)
         self.label_nome.grid(row=0,column=0,padx=50)
         self.label_nome.grid_columnconfigure(0,weight=1)
 
 
 ######################
-        #frame tabview - meio
+        # tabview - meio
         self.table_view = cadast.Table_View(master=self,width=1100, height=450)
         self.table_view.grid(row=1,column=0,pady=10,padx=50)
 
@@ -48,12 +48,14 @@ class APP(ctk.CTk):
         self.tree_view.grid(row=0,column=0)
 
 
-        #atualizar e popular treeview ao iniciar o programa
+        #atualizar e popular treeview ao iniciar o programa - durante a inicialização do objeto
         self.tree_view.atualiza_treeview_ponto()
 
 
-        #atualiza a e popula a treeview sempre que é adicionado um novo ponto de coleta
+        #atualiza a e popula a treeview - a instancia viva tabel acessa a função em tree que atualiza o
         self.table_view.tree_atualiza=self.tree_view.atualiza_treeview_ponto
+
+        
 #######################
 
         
